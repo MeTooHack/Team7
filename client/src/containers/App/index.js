@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
-import Icon from '../components/Icon';
-import logo from '../assets/logo.svg';
+import {connect} from 'react-redux';
+import Icon from '../../components/Icon/index';
+import logo from '../../assets/logo.svg';
 import styled from 'styled-components';
+import PropTypes from 'prop-types';
 
 const Wrapper = styled.div`
   text-align: center;
@@ -32,6 +34,11 @@ const Intro = styled.p`
 
 class App extends Component {
   render() {
+    const {
+      dog,
+      cat,
+    } = this.props;
+
     return (
       <Wrapper>
         <Header>
@@ -42,15 +49,21 @@ class App extends Component {
           To get started, edit <code>src/App.js</code> and save to reload.
         </Intro>
         <Icon />
-        <Icon />
-        <Icon />
-        <Icon />
-        <Icon />
-        <Icon />
-        <Icon />
+        {dog && 'dog'}
+        {cat && 'cat'}
       </Wrapper>
     );
   }
 }
 
-export default App;
+App.propTypes = {
+  dog: PropTypes.bool.isRequired,
+  cat: PropTypes.bool.isRequired,
+};
+
+const mapStateToProps = ({containers: { appReducer: state }}) => ({
+  dog: state.dog,
+  cat: state.cat,
+});
+
+export default connect(mapStateToProps, () => ({}))(App);
