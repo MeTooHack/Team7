@@ -49,6 +49,7 @@ class App extends Component {
          .then((result) => {
            const isMe = result.identifiedProfileId === profileId;
            if (isMe) this.setState({mattias: true});
+           if (!isMe) this.setState({mattias: false});
 
            console.log(result);
          }))
