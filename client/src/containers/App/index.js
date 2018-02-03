@@ -41,12 +41,19 @@ class App extends Component {
   }
   onRecordingReady(e) {
     const send = (data) => {
+      this.setState({
+        isLoading: true,
+        mattias: false
+      })
        Promise.all([
        createProfile(),
        fetch('/enrollment-mpj.wav').then(r => r.blob())
        ]).then(([ profileId, wav ]) => createEnrollment(profileId, wav)
          .then(() => identify([profileId], new Blob([new Uint8Array(data)])))
          .then((result) => {
+           this.setState({
+             isLoading: false
+           })
            const isMe = result.identifiedProfileId === profileId;
            if (isMe) this.setState({mattias: true});
            if (!isMe) this.setState({mattias: false});
@@ -71,8 +78,9 @@ class App extends Component {
   render() {
     return (
       <Wrapper>
-        <div style={{height: '200px', width: '200px', margin: '0 auto', backgroundColor: this.state.isRecording ? 'red' : 'white' }} />
-        {this.state.mattias && <h1>hello mattias</h1>}
+        <div style={{height: '200px', width: '200px', margin: '0 auto', backgroundColor: this.state.isRecording ? 'red' : 'white', borderRadius: '50%' }} />
+        {this.state.isLoading && <h1>PROCESSING....</h1>}
+        {this.state.mattias === true && <h1>hello mattias</h1>  }
         <button onClick={this.start}>start</button>
         <button onClick={this.stop}>stop</button>
       </Wrapper>
