@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import {connect} from 'react-redux';
-import Icon from '../../components/Icon/index';
-import logo from '../../assets/logo.svg';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 
@@ -9,48 +7,47 @@ const Wrapper = styled.div`
   text-align: center;
 `;
 
-const Header = styled.header`
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
-`;
-
-const Logo = styled.img`
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
-`;
-
-const Title = styled.h1`
-  font-size: 1.5em;
-`;
-
-const Intro = styled.p`
-  font-size: large;
-`;
-
-
-
-
 class App extends Component {
-  render() {
-    const {
-      dog,
-      cat,
-    } = this.props;
+  constructor(props) {
+    super(props);
+    this.start = this.start.bind(this);
+    this.stop = this.stop.bind(this);
+    this.onRecordingReady = this.onRecordingReady.bind(this);
 
+    this.state = {
+      mediaRecorder: null,
+    };
+
+    // get audio stream from user's mic
+    navigator.mediaDevices.getUserMedia({
+      audio: true
+    }).then((stream) => {
+      this.recorder = new MediaRecorder(stream);
+      this.recorder.addEventListener('dataavailable', this.onRecordingReady);
+    });
+  }
+  start() {
+    this.recorder.start();
+  }
+  stop() {
+    this.recorder.stop();
+  }
+  onRecordingReady(e) {
+    console.log('data', e.data);
+    const headers = {
+      "Content-Type": 'video/webm',
+    };
+
+    fetch('http://localhost:3002', { method: 'POST', body: e.data, headers })
+      .then((response) => {
+        console.log(response);
+      });
+  }
+  render() {
     return (
       <Wrapper>
-        <Header>
-          <Logo src={logo} className="App-logo" alt="logo" />
-          <Title className="App-title">Welcome to React</Title>
-        </Header>
-        <Intro className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </Intro>
-        <Icon />
-        {dog && 'dog'}
-        {cat && 'cat'}
+        <button onClick={this.start}>start</button>
+        <button onClick={this.stop}>stop</button>
       </Wrapper>
     );
   }
