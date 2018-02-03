@@ -53,8 +53,9 @@ export const identify = (profileIds, wavBlob ) =>
     },
     body: wavBlob
   })
-  .then(asLocation)
-  .then(waitForOperation)
+    .then((response) => response.text().then((text) => console.log(text)))
+  // .then(asLocation)
+  // .then(waitForOperation)
 
 const waitForOperation = location =>
   operationStatus(location).then(operation =>

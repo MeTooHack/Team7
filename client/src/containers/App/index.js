@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import {connect} from 'react-redux';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
+import toWav from 'audiobuffer-to-wav';
+import { createEnrollment, createProfile, identify } from './speech';
+
+var audioCtx = new AudioContext();
 
 const Wrapper = styled.div`
   text-align: center;
@@ -23,6 +27,7 @@ class App extends Component {
       audio: true
     }).then((stream) => {
       this.recorder = new MediaRecorder(stream);
+
       this.recorder.addEventListener('dataavailable', this.onRecordingReady);
     });
   }
@@ -34,14 +39,42 @@ class App extends Component {
   }
   onRecordingReady(e) {
     console.log('data', e.data);
-    const headers = {
-      "Content-Type": 'video/webm',
-    };
+    // new Blob([new Uint8Array(someArrayBuffer)])
 
-    fetch('http://localhost:3002', { method: 'POST', body: e.data, headers })
-      .then((response) => {
-        console.log(response);
-      });
+    const send = (data) => {
+       Promise.all([
+       createProfile(),
+       fetch('/enrollment-mpj.wav').then(r => r.blob())
+       ]).then(([ profileId, wav ]) => createEnrollment(profileId, wav)
+         .then(() => identify([profileId], new Blob([new Uint8Array(data)])))
+         .then((result) => {
+           const isMe = result.identifiedProfileId === profileId;
+           console.log(result);
+         }))
+    }
+
+
+
+    (new Promise((resolve) => {
+      let fileReader = new FileReader();
+      fileReader.onloadend = () => {
+        resolve(fileReader.result);
+      }
+
+      fileReader.readAsArrayBuffer(e.data);
+    })).then(arrayBuffer =>
+      audioCtx.decodeAudioData(arrayBuffer))
+      .then(x => console.log('iam audiobuffer?', send(toWav(x))))
+
+
+    // const headers = {
+    //   "Content-Type": 'video/webm',
+    // };
+    //
+    // fetch('http://localhost:3002', { method: 'POST', body: e.data, headers })
+    //   .then((response) => {
+    //     console.log(response);
+    //   });
   }
   render() {
     return (
