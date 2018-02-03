@@ -19,7 +19,8 @@ class App extends Component {
     this.onRecordingReady = this.onRecordingReady.bind(this);
 
     this.state = {
-      mediaRecorder: null,
+      isRecording: false,
+      mattias: false,
     };
 
     // get audio stream from user's mic
@@ -27,20 +28,18 @@ class App extends Component {
       audio: true
     }).then((stream) => {
       this.recorder = new MediaRecorder(stream);
-
       this.recorder.addEventListener('dataavailable', this.onRecordingReady);
     });
   }
   start() {
     this.recorder.start();
+    this.setState({isRecording: true})
   }
   stop() {
     this.recorder.stop();
+    this.setState({isRecording: false})
   }
   onRecordingReady(e) {
-    console.log('data', e.data);
-    // new Blob([new Uint8Array(someArrayBuffer)])
-
     const send = (data) => {
        Promise.all([
        createProfile(),
@@ -49,9 +48,11 @@ class App extends Component {
          .then(() => identify([profileId], new Blob([new Uint8Array(data)])))
          .then((result) => {
            const isMe = result.identifiedProfileId === profileId;
+           if (isMe) this.setState({mattias: true});
+
            console.log(result);
          }))
-    }
+    };
 
 
 
@@ -59,26 +60,18 @@ class App extends Component {
       let fileReader = new FileReader();
       fileReader.onloadend = () => {
         resolve(fileReader.result);
-      }
+      };
 
       fileReader.readAsArrayBuffer(e.data);
     })).then(arrayBuffer =>
       audioCtx.decodeAudioData(arrayBuffer))
       .then(x => console.log('iam audiobuffer?', send(toWav(x))))
-
-
-    // const headers = {
-    //   "Content-Type": 'video/webm',
-    // };
-    //
-    // fetch('http://localhost:3002', { method: 'POST', body: e.data, headers })
-    //   .then((response) => {
-    //     console.log(response);
-    //   });
   }
   render() {
     return (
       <Wrapper>
+        <div style={{height: '200px', width: '200px', margin: '0 auto', backgroundColor: this.state.isRecording ? 'red' : 'white' }} />
+        {this.state.mattias && <h1>hello mattias</h1>}
         <button onClick={this.start}>start</button>
         <button onClick={this.stop}>stop</button>
       </Wrapper>
