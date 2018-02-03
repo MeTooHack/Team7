@@ -5,6 +5,7 @@ const express = require('express');
 const app = express();
 const vcapServices = require('vcap_services');
 const cors = require('cors')
+const bodyParser = require('body-parser')
 
 // on bluemix, enable rate-limiting and force https
 if (process.env.VCAP_SERVICES) {
@@ -30,6 +31,11 @@ if (process.env.VCAP_SERVICES) {
 app.use(express.static(__dirname + '/static'));
 app.use(cors())
 
+app.use(bodyParser.raw({
+  limit: '10000000kb',
+  type: 'video/webm'
+}))
+
 
 const port = process.env.PORT || process.env.VCAP_APP_PORT || 3002;
 app.listen(port, function() {
@@ -37,7 +43,7 @@ app.listen(port, function() {
 });
 
 app.post('/', function (req, res) {
-  console.log(req.body);
+  console.log('the body is', req.body); /// <-- this is now a BUFFERR!!!
   res.send('hello world')
 });
 
